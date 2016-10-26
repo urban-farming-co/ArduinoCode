@@ -81,7 +81,7 @@ void takeAPicture(Adafruit_VC0706 * cam) {
   
   Serial.println("Snap in 3 secs...");
   delay(3000);
-  if (! cam->takePicture()) {
+  if (!cam->takePicture()) {
     Serial.println("Camera Failed to Snap!");
   }
   else { 
@@ -195,6 +195,7 @@ void setup() {
   setImageSize(&camL); 
   setImageSize(&camR);
   Serial.println("Set image size.");
+  
   Serial.println("=======");
   
   Serial.println("Taking left picture");
