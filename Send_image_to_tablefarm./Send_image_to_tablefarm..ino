@@ -22,12 +22,12 @@
 // -goes back to deep sleep for 270 seconds.
 
 
-#include <ESP8266WiFi.h>
+//#include <ESP8266WiFi.h>
 #include <WiFiClient.h>
-#include <ESP8266WebServer.h>
+//#include <ESP8266WebServer.h>
 
 #include <Wire.h>
-#include <ArduCAM.h>
+//#include <ArduCAM.h>
 #include <SPI.h>
 #include "memorysaver.h"
 
@@ -45,9 +45,9 @@ const int CS = 4;
 int LightLevel=0;
 int bfcnt=1;
 int wfcnt=0;
-const char* ssid = "YourSsid"; // Put your SSID here
-const char* password = "YourKey"; // Put your PASSWORD here
 
+#define ssid       "UrbanFarmingTest"        // cannot be longer than 32 characters!
+#define password       "JohnAnderson13.30-04/05/16"
 ArduCAM myCAM(OV2640, CS);
 
 void start_capture(){

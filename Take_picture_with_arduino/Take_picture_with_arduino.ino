@@ -17,22 +17,20 @@ int checkCard() {
             pinMode(53, OUTPUT); // SS on Mega
             digitalWrite(53, HIGH);
       }
-      
     #else
        if(chipSelect != 10) {
          pinMode(10, OUTPUT); // SS on Uno, etc.
-         digitalWrite(HIGH);
+         digitalWrite(10, HIGH);
        }
     #endif
   #endif
+  
   // see if the card is present and can be initialized:
   if (!SD.begin(chipSelect)) {
     Serial.println("Card failed, or not present");
-    // don't do anything more:
     return -1;
-  }else{
-    Serial.println("Found Card");
   }
+  Serial.println("Found Card");
   return 0; 
 }
 
@@ -41,15 +39,14 @@ int checkCamera(Adafruit_VC0706 * cam) {
 
   if (cam->begin()) {
     Serial.println("Camera Found:");
+    return 0;
   } else {
     Serial.println("Camera not found?");
     return -1;
   }
-  return 0;
 }
 
 void printVersionInfo (Adafruit_VC0706 * cam) {
-  
   char *reply = cam->getVersion();
   if (reply == 0) {
     Serial.println("Failed to get version");
@@ -61,7 +58,7 @@ void printVersionInfo (Adafruit_VC0706 * cam) {
   return;
 }
 
-void setImageSize(Adafruit_VC0706 * cam) {
+int setImageSize(Adafruit_VC0706 * cam) {
 
   // Set the picture size - you can choose one of 640x480, 320x240 or 160x120 
   // Remember that bigger pictures take longer to transmit!
@@ -72,42 +69,51 @@ void setImageSize(Adafruit_VC0706 * cam) {
   // You can read the size back from the camera (optional, but maybe useful?)
   uint8_t imgsize = cam->getImageSize();  
   Serial.println("Image size: ");
-  if (imgsize == VC0706_640x480) Serial.println("640x480");
-  if (imgsize == VC0706_320x240) Serial.println("320x240");
-  if (imgsize == VC0706_160x120) Serial.println("160x120");
-  return;
+  if (imgsize == VC0706_640x480) {
+    Serial.println("640x480");
+  }
+  else { 
+    if (imgsize == VC0706_320x240) {
+      Serial.println("320x240");
+    }
+    else{
+      if (imgsize == VC0706_160x120) {
+        Serial.println("160x120");
+      }else {
+        Serial.println(imgsize);
+        return -1;
+      }
+    }
+  }
+  return 0;
 }
 void takeAPicture(Adafruit_VC0706 * cam) {
-  
+  bool b = cam->takePicture();
   Serial.println("Snap in 3 secs...");
+  Serial.println(b);
   delay(3000);
-  if (!cam->takePicture()) {
+  b = cam->takePicture();
+  if (!b) {
     Serial.println("Camera Failed to Snap!");
+    return -1;
   }
   else { 
     Serial.println("Picture taken!");
+    return 0;
   }
-  return;
 }
 
 
-void saveImage(Adafruit_VC0706 * cam, char* side){
-  
-  // Create an image with the name LEFT.JPG
-  char filename[13];
-  Serial.println(side[0]);
-  Serial.println(side);
-  if (side[0] == 'l'){
-    Serial.println("Save to Left");
-  strcpy(filename, "LEFT.JPG");
-  }else {
-    Serial.println("Save to Right");
-  strcpy(filename, "RIGHT.JPG");
-  }
+void saveImage(Adafruit_VC0706 * cam, char * f){
+  char filename[9];
+  Serial.println(f);
+  strcpy(filename, (const) f);
+  Serial.println(filename);
+
   
   // Open the file for writing
   File imgFile = SD.open(filename, FILE_WRITE);
-
+  Serial.println("Opened file for writing");
   // Get the size of the image (frame) taken  
   uint16_t jpglen = cam->frameLength();
   Serial.print("Storing ");
@@ -172,18 +178,21 @@ void setup() {
   int i = checkCard();
   Serial.println(i);
   if (i!=0){
+    Serial.println("Sadly, I haven't found the SD card.");
     return;
   }
   Serial.println("checked the card");
   Serial.println("checking the left camera");
   i = checkCamera(&camL);
   if (i!=0){
+    Serial.println("Sadly, I haven't found that camera.");
     return;
   }
   Serial.println("checked the left camera");
   Serial.println("checking the right camera");
   i = checkCamera(&camR);
   if (i!=0){
+    Serial.println("Sadly, I haven't found that camera.");
     return;
   }
   Serial.println("checked the right camera");
@@ -197,25 +206,34 @@ void setup() {
   Serial.println("Set image size.");
   
   Serial.println("=======");
-  
-  Serial.println("Taking left picture");
-  delay(1000);
-  takeAPicture(&camL);
 
-  Serial.println("Saving left image");
-  delay(1000);
-  saveImage(&camL, "left");
-  
-  
+  char * filename = (char* )calloc(9, sizeof(char));
+
   Serial.println("Taking right picture");
   delay(1000);
   takeAPicture(&camR);
    
   Serial.println("Saving right image");
   delay(1000);
-  saveImage(&camR, "right");
+  filename = "RIGHT.JPG";
+  saveImage(&camR, filename);
 
+
+  filename = (char* )realloc(filename, sizeof(char)*8);
+  Serial.println("Taking left picture");
+  delay(1000);
+  takeAPicture(&camL);
+
+  Serial.println("Saving left image");
+  delay(1000);
+  filename = "LEFT.JPG";
+  saveImage(&camL, filename);
+
+  
+  free (filename);
   Serial.println("Done.");
+
+  
 }
 
 void loop() {

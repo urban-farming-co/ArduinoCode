@@ -99,7 +99,7 @@ void setup(void)
   Serial.println(F("\nDeleting old connection profiles"));
   if (!cc3000.deleteProfiles()) {
     Serial.println(F("Failed!"));
-    while(1);
+    return ;
   }
 
   /* Optional: Set a static IP address instead of using DHCP.
@@ -148,7 +148,7 @@ void setup(void)
      be a number of retries to make before giving up, for example 5 would retry
      5 times and then fail if a connection couldn't be made.
   */
-  if (!cc3000.connectToAP(WLAN_SSID, WLAN_PASS, WLAN_SECURITY)) {
+  if (!cc3000.connectToAP(WLAN_SSID, WLAN_PASS, WLAN_SECURITY, 5)) {
     Serial.println(F("Failed!"));
     while(1);
   }
@@ -173,9 +173,9 @@ void setup(void)
 #ifndef CC3000_TINY_DRIVER
   /* Try looking up www.adafruit.com */
   uint32_t ip = 0;
-  Serial.print(F("www.adafruit.com -> "));
+  Serial.print(F("www.tablefarm.co.uk -> "));
   while  (ip  ==  0)  {
-    if  (!  cc3000.getHostByName("www.adafruit.com", &ip))  {
+    if  (!  cc3000.getHostByName("www.tablefarm.co.uk/", &ip))  {
       Serial.println(F("Couldn't resolve!"));
     }
     delay(500);
